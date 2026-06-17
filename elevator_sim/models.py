@@ -29,6 +29,28 @@ class Direction(Enum):
         return Direction.IDLE
 
 
+class PassengerState(Enum):
+    """A passenger's position in the service lifecycle.
+
+    The progression is strictly forward::
+
+        WAITING -> ASSIGNED -> ONBOARD -> DELIVERED
+
+    * ``WAITING``   — request released, not yet assigned to a car.
+    * ``ASSIGNED``  — a car has accepted the passenger but they have not boarded.
+    * ``ONBOARD``   — picked up, riding, not yet dropped off.
+    * ``DELIVERED`` — dropped off at the destination.
+
+    The state is *derived* from the passenger's timestamps and assignment (see
+    :attr:`Passenger.state`) so it can never drift out of sync with them.
+    """
+
+    WAITING = "waiting"
+    ASSIGNED = "assigned"
+    ONBOARD = "onboard"
+    DELIVERED = "delivered"
+
+
 @dataclass(frozen=True)
 class Request:
     """A single elevator request, exactly as it appears in the input file.
@@ -83,6 +105,21 @@ class Passenger:
     @property
     def delivered(self) -> bool:
         return self.dropoff_time is not None
+
+    @property
+    def state(self) -> PassengerState:
+        """Current lifecycle state, derived from timestamps and assignment.
+
+        Single source of truth: the underlying timestamps drive the state, so it
+        cannot disagree with :attr:`picked_up` / :attr:`delivered`.
+        """
+        if self.dropoff_time is not None:
+            return PassengerState.DELIVERED
+        if self.pickup_time is not None:
+            return PassengerState.ONBOARD
+        if self.assigned_elevator is not None:
+            return PassengerState.ASSIGNED
+        return PassengerState.WAITING
 
     @property
     def wait_time(self) -> Optional[int]:

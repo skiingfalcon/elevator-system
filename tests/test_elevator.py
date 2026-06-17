@@ -1,7 +1,7 @@
 """Unit tests for the Elevator car: movement, capacity, direction, express."""
 
 from elevator_sim.elevator import Elevator
-from elevator_sim.models import Direction, Passenger
+from elevator_sim.models import Direction, Passenger, PassengerState
 
 
 def make_passenger(pid, source, dest, t=0):
@@ -48,6 +48,30 @@ def test_passenger_delivered_to_destination():
     assert p.pickup_time is not None
     assert p.dropoff_time is not None
     assert p.dropoff_time > p.pickup_time
+
+
+def test_passenger_state_progresses_waiting_to_delivered():
+    e = Elevator(index=0, capacity=4, start_floor=1)
+    p = make_passenger("a", 1, 4)
+
+    # Before assignment.
+    assert p.state is PassengerState.WAITING
+
+    e.assign(p)
+    assert p.state is PassengerState.ASSIGNED
+
+    seen_onboard = False
+    for now in range(20):
+        e.step(now)
+        if p.state is PassengerState.ONBOARD:
+            seen_onboard = True
+        if p.state is PassengerState.DELIVERED:
+            break
+
+    assert seen_onboard, "passenger should pass through ONBOARD before delivery"
+    assert p.state is PassengerState.DELIVERED
+    # State stays consistent with the boolean shortcuts.
+    assert p.delivered and p.picked_up
 
 
 def test_direction_logic_no_reverse_with_stops_ahead():
