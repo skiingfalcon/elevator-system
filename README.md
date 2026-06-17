@@ -180,6 +180,12 @@ switching to an ETA-along-the-SCAN-run estimate fixed it) plus the README.
   re-optimize; this keeps the model simple and the guarantees easy to reason about.
 - **A degenerate `source == dest` request** is picked up and dropped off in the
   same tick (wait = total = 0).
+- **Input is validated up front, not silently tolerated.** A `source`/`dest`
+  outside `1..floors`, a `start_floor` outside the building, or an express
+  configuration where no car can serve a request all raise a clear `ValueError`
+  before the simulation runs — rather than running to the safety tick-cap and
+  failing with a confusing "undelivered passengers" error. Passenger IDs are
+  assumed unique but not enforced (duplicates simulate as independent riders).
 - **`zone_based` assumes contiguous equal zones**; uneven demand across zones isn't
   rebalanced beyond the nearest-car fallback when a zone's car is full.
 - **The ETA cost is an estimate**, not an exact future-state simulation — it doesn't

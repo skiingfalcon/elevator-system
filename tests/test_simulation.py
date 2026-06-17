@@ -128,3 +128,50 @@ def test_parse_requests_sorts_by_time(tmp_path):
     csv.write_text("10,late,1,5\n0,early,5,1\n")  # no header, out of order
     reqs = parse_requests(str(csv))
     assert [r.id for r in reqs] == ["early", "late"]
+
+
+# --------------------------------------------------------------------------- #
+# Boundary-condition validation
+# --------------------------------------------------------------------------- #
+def test_bad_start_floor_rejected():
+    with pytest.raises(ValueError, match="start_floor"):
+        SimulationConfig(floors=10, num_elevators=2, capacity=4, start_floor=11)
+    with pytest.raises(ValueError, match="start_floor"):
+        SimulationConfig(floors=10, num_elevators=2, capacity=4, start_floor=0)
+
+
+@pytest.mark.parametrize(
+    "source,dest",
+    [
+        (0, 5),    # source below 1
+        (1, 11),   # dest above floors
+        (-3, 5),   # negative source
+        (5, 0),    # dest below 1
+    ],
+)
+def test_out_of_range_floors_rejected(source, dest):
+    sim = make_sim("nearest_car", floors=10, elevators=2, capacity=4)
+    reqs = [Request(time=0, id="oops", source=source, dest=dest)]
+    with pytest.raises(ValueError, match="out of range"):
+        sim.run(reqs)
+
+
+def test_in_range_floors_accepted():
+    """A request touching the exact boundaries (1 and floors) is fine."""
+    sim = make_sim("nearest_car", floors=10, elevators=2, capacity=4)
+    result = sim.run([Request(time=0, id="edge", source=1, dest=10)])
+    assert all(p.delivered for p in result.passengers)
+
+
+def test_unserveable_express_passenger_rejected():
+    """No car covers floor 25, so this request can never be served -> fail fast."""
+    cfg = SimulationConfig(
+        floors=60,
+        num_elevators=2,
+        capacity=4,
+        express_floors=[{1, 30, 60}, {1, 30, 60}],
+    )
+    sim = Simulation(cfg, create("nearest_car"))
+    reqs = [Request(time=0, id="stranded", source=1, dest=25)]
+    with pytest.raises(ValueError, match="cannot be served"):
+        sim.run(reqs)

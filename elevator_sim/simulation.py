@@ -22,7 +22,7 @@ from typing import List, Optional, Sequence, Set
 
 from elevator_sim.elevator import Elevator
 from elevator_sim.io_utils import PathLike, PositionLogWriter
-from elevator_sim.models import Passenger, Request
+from elevator_sim.models import Passenger, PassengerState, Request
 from elevator_sim.schedulers.base import Scheduler
 
 
@@ -44,6 +44,11 @@ class SimulationConfig:
             raise ValueError("floors must be >= 1")
         if self.capacity < 1:
             raise ValueError("capacity must be >= 1")
+        if not 1 <= self.start_floor <= self.floors:
+            raise ValueError(
+                f"start_floor {self.start_floor} out of range "
+                f"(building has floors 1..{self.floors})"
+            )
 
 
 @dataclass
@@ -85,7 +90,13 @@ class Simulation:
 
         ``requests`` may be in any order; they are released strictly by ``time``.
         If ``log_path`` is given, per-tick positions are streamed to that file.
+
+        Requests are validated up front (floor ranges, and that some car can serve
+        each one) so impossible input fails fast with a clear error rather than
+        silently running to the tick cap.
         """
+        self._validate_requests(requests)
+
         # Group requests by release time without exposing the future to the scheduler.
         by_time: dict[int, List[Request]] = {}
         for r in requests:
@@ -123,7 +134,9 @@ class Simulation:
                     e.step(now)
 
                 # 4. Count deliveries and log positions.
-                delivered = sum(1 for p in all_passengers if p.delivered)
+                delivered = sum(
+                    1 for p in all_passengers if p.state is PassengerState.DELIVERED
+                )
                 floors = [e.floor for e in self.elevators]
                 history.append(floors)
                 if log is not None:
@@ -148,6 +161,32 @@ class Simulation:
             config=self.config,
             position_history=history,
         )
+
+    def _validate_requests(self, requests: Sequence[Request]) -> None:
+        """Reject input that the building can never serve, before simulating.
+
+        Catches two boundary conditions that would otherwise only surface as a
+        confusing "hit tick cap" error many ticks later:
+
+        * a ``source`` or ``dest`` outside the building's ``1..floors`` range, and
+        * a request no car can serve because every car's express ``served_floors``
+          excludes its ``source`` or ``dest``.
+        """
+        floors = self.config.floors
+        for r in requests:
+            for label, floor in (("source", r.source), ("dest", r.dest)):
+                if not 1 <= floor <= floors:
+                    raise ValueError(
+                        f"Request {r.id!r} has {label} floor {floor} out of range "
+                        f"(building has floors 1..{floors})"
+                    )
+            if not any(
+                e.serves(r.source) and e.serves(r.dest) for e in self.elevators
+            ):
+                raise ValueError(
+                    f"Request {r.id!r} ({r.source} -> {r.dest}) cannot be served by "
+                    f"any elevator; check express (--express) floor coverage"
+                )
 
     def _dispatch(self, pending: List[Passenger], now: int) -> List[Passenger]:
         """Assign as many pending passengers as possible; return those still waiting."""
