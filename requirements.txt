@@ -1,0 +1,4 @@
+# Core simulation uses only the Python standard library.
+# These are needed only for the optional extras:
+matplotlib>=3.5   # visualizations (--plot)
+pytest>=7.0       # test suite
