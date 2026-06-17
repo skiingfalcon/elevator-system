@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from typing import List, Optional
+from typing import List, Optional, Sequence, Set
 
 from elevator_sim import schedulers
 from elevator_sim.io_utils import parse_requests
@@ -43,6 +43,17 @@ def build_parser() -> argparse.ArgumentParser:
         default="positions.log",
         help="Where to write the per-tick positions log (default: positions.log)",
     )
+    p.add_argument(
+        "--express",
+        action="append",
+        default=None,
+        metavar="IDX:F1,F2,...",
+        help=(
+            "Make an elevator an express car serving only the listed floors, e.g. "
+            "'--express 0:1,30,60'. Repeat for multiple cars; unlisted cars stay "
+            "full-service. Origin and destination must both be served floors."
+        ),
+    )
     p.add_argument("--plot", action="store_true", help="Render matplotlib charts (requires matplotlib)")
     p.add_argument(
         "--plot-prefix",
@@ -50,6 +61,41 @@ def build_parser() -> argparse.ArgumentParser:
         help="Filename prefix for generated charts",
     )
     return p
+
+
+def parse_express(
+    specs: Optional[Sequence[str]], num_elevators: int
+) -> Optional[List[Optional[Set[int]]]]:
+    """Turn ``--express IDX:F1,F2,...`` specs into a per-elevator served-floors list.
+
+    Returns ``None`` when no express cars are configured (all full-service), or a
+    list of length ``num_elevators`` where each entry is either ``None``
+    (full-service) or the set of floors that car is restricted to.
+    """
+    if not specs:
+        return None
+
+    served: List[Optional[Set[int]]] = [None] * num_elevators
+    for spec in specs:
+        if ":" not in spec:
+            raise ValueError(f"Malformed --express {spec!r}; expected IDX:F1,F2,...")
+        idx_str, floors_str = spec.split(":", 1)
+        try:
+            idx = int(idx_str)
+        except ValueError:
+            raise ValueError(f"Malformed --express {spec!r}; elevator index must be an integer")
+        if not 0 <= idx < num_elevators:
+            raise ValueError(
+                f"--express index {idx} out of range for {num_elevators} elevators (0..{num_elevators - 1})"
+            )
+        try:
+            floors = {int(f) for f in floors_str.split(",") if f.strip()}
+        except ValueError:
+            raise ValueError(f"Malformed --express {spec!r}; floors must be integers")
+        if not floors:
+            raise ValueError(f"--express {spec!r} lists no floors")
+        served[idx] = floors
+    return served
 
 
 def _make_scheduler(name: str, floors: int, num_elevators: int):
@@ -67,11 +113,18 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("No requests found in input; nothing to simulate.", file=sys.stderr)
         return 1
 
+    try:
+        express = parse_express(args.express, args.elevators)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
     config = SimulationConfig(
         floors=args.floors,
         num_elevators=args.elevators,
         capacity=args.capacity,
         start_floor=args.start_floor,
+        express_floors=express,
     )
     scheduler = _make_scheduler(args.scheduler, args.floors, args.elevators)
 
