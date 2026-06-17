@@ -39,6 +39,7 @@ python -m elevator_sim \
 | `--capacity` | `8` | Max passengers per car |
 | `--start-floor` | `1` | Floor every car starts on |
 | `--scheduler` | `nearest_car` | `nearest_car`, `round_robin`, or `zone_based` |
+| `--express` | none | Make a car express: `IDX:F1,F2,...` (repeatable), e.g. `0:1,30,60` |
 | `--log-out` | `positions.log` | Per-tick elevator positions log |
 | `--plot` | off | Render wait/total-time histograms + movement chart (needs matplotlib) |
 | `--plot-prefix` | none | Filename prefix for generated charts |
@@ -122,20 +123,28 @@ The loop ends when every passenger has been delivered.
 
 ## Scheduler comparison (fairness vs. efficiency)
 
-On a 200-passenger randomized workload (60 floors, 4 cars, capacity 8, seed 42):
+On a 200-passenger randomized workload (60 floors, 4 cars, capacity 8, seed 42),
+reproducible with `python bench.py`:
 
 | Scheduler | avg `total_time` | max `wait_time` | sim length |
 |-----------|-----------------:|----------------:|-----------:|
-| `nearest_car` | **152.4** | **305** | **530** |
-| `round_robin` | 184.9 | 356 | 560 |
-| `zone_based`  | 185.2 | 349 | 568 |
+| `nearest_car` | **134.9** | **241** | 551 |
+| `round_robin` | 146.8 | 265 | 583 |
+| `zone_based`  | 144.9 | 277 | 563 |
 
-`nearest_car` wins on realistic mixed traffic (~18% lower average total time and
+`nearest_car` wins on realistic mixed traffic (~8% lower average total time and
 the lowest worst-case wait). On *small, highly-clustered* inputs (e.g. the 15-row
 sample where most traffic is floor 1 going up), blind `round_robin` spreading can
 occasionally edge it out — the efficiency gain from bundling same-direction riders
 only pays off at scale. All three deliver every passenger; the trade-off is in
 average and tail latency, not completeness.
+
+Regenerate the table (or sweep different parameters) with:
+
+```bash
+python bench.py                       # defaults match the table above
+python bench.py --passengers 500 --elevators 6 --seed 7
+```
 
 ---
 
@@ -145,8 +154,10 @@ average and tail latency, not completeness.
   `--scheduler`, registered through a pluggable interface — adding a fourth is a
   single new file).
 - **Express elevators**: an `Elevator` can be given a `served_floors` set; the
-  scheduler then only routes compatible passengers to it. (Wired into the
-  `Elevator`/`SimulationConfig` API; not yet exposed as a CLI flag.)
+  scheduler then only routes compatible passengers to it. Exposed on the CLI via
+  `--express IDX:F1,F2,...` (repeatable), e.g.
+  `--express 0:1,30,60` makes car 0 an express serving only floors 1, 30, and 60
+  while the other cars stay full-service.
 - **Fairness vs. efficiency** comparison (table above).
 - **Visualizations** (`--plot`).
 
@@ -181,7 +192,7 @@ switching to an ETA-along-the-SCAN-run estimate fixed it) plus the README.
 - **Look-ahead / batching** within a tick — when several requests arrive together,
   solve the assignment jointly (e.g. Hungarian algorithm) instead of greedily.
 - **Dwell time and acceleration** for a more realistic physical model.
-- **Expose express elevators and zone boundaries on the CLI**, plus per-elevator
-  configuration files.
+- **Expose zone boundaries on the CLI** (express elevators are now configurable
+  via `--express`), plus per-elevator configuration files.
 - **Richer metrics** — energy/distance traveled per car, percentile latencies, and
   live load balancing under sustained traffic.
