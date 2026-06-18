@@ -12,22 +12,25 @@ This implements the take-home spec in [`Take_home_Elevator.md`](Take_home_Elevat
 ## How to run
 
 The core simulation depends only on the Python standard library (Python 3.9+).
-The optional extras (charts, tests) need `matplotlib` and `pytest`.
+Dependencies are managed with [uv](https://docs.astral.sh/uv/). The only
+non-stdlib packages are optional extras: `matplotlib` (for `--plot`, in the
+`plot` extra) and `pytest` (for the test suite, in the `dev` group).
 
 ```bash
-# (optional) create a virtual environment
-python3 -m venv .venv && source .venv/bin/activate
-
-# install optional extras for --plot and the test suite
-pip install -r requirements.txt
+# create the environment and install the optional plot extra
+uv sync --extra plot
 
 # run on the provided sample, using the default nearest-car scheduler
-python -m elevator_sim \
+uv run elevator-sim \
     --floors 60 --elevators 3 --capacity 8 \
     --scheduler nearest_car \
     --input data/sample_requests.csv \
     --log-out positions.log
 ```
+
+`uv run elevator-sim ...` and `uv run python -m elevator_sim ...` are
+equivalent. Drop `--extra plot` if you don't need charts; the core simulation
+needs no third-party packages at all.
 
 ### CLI options
 
@@ -58,7 +61,7 @@ python -m elevator_sim \
 ### Run the tests
 
 ```bash
-python -m pytest
+uv run pytest
 ```
 
 ---
