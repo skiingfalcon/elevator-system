@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 from elevator_sim.elevator import Elevator
-from elevator_sim.models import Direction, Passenger
+from elevator_sim.models import Passenger
 from elevator_sim.schedulers.base import Scheduler, register
 
 
@@ -34,35 +34,8 @@ class NearestCarScheduler(Scheduler):
         self.stop_cost = stop_cost
         self.aging_weight = aging_weight
 
-    def _eta(self, elevator: Elevator, source: int) -> float:
-        """Estimate ticks until ``elevator`` could reach ``source``.
-
-        Rather than raw current-floor distance, account for the car's committed
-        SCAN run: a busy car heading away must finish its current sweep before it
-        can double back. This makes overloaded / wrong-direction cars genuinely
-        expensive, so load spreads across the bank instead of piling on one car.
-        """
-        cur = elevator.floor
-        direction = elevator.direction
-
-        if direction == Direction.IDLE or not elevator.is_busy():
-            return abs(cur - source)
-
-        targets = elevator._target_floors()
-        if direction == Direction.UP:
-            extreme = max(targets | {cur})
-            if source >= cur:
-                return source - cur  # reachable on the way up
-            # Up to the top of the run, then back down to source.
-            return (extreme - cur) + (extreme - source)
-        else:  # DOWN
-            extreme = min(targets | {cur})
-            if source <= cur:
-                return cur - source
-            return (cur - extreme) + (source - extreme)
-
     def _cost(self, elevator: Elevator, p: Passenger, now: int) -> float:
-        eta = self._eta(elevator, p.source)
+        eta = elevator.eta_to(p.source)
         # Each already-committed stop adds a little expected delay (proxy for the
         # extra dwell/detour a fuller car imposes).
         congestion = self.stop_cost * elevator.commitment

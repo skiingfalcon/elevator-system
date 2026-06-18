@@ -131,7 +131,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    summary = summarize(result.passengers, result.ticks_elapsed)
+    summary = summarize(
+        result.passengers, result.ticks_elapsed, result.position_history
+    )
     print(f"Scheduler: {args.scheduler}  |  "
           f"{config.num_elevators} elevators, {config.floors} floors, "
           f"capacity {config.capacity}")

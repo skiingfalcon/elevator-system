@@ -6,7 +6,13 @@ import pytest
 
 from elevator_sim.io_utils import parse_requests
 from elevator_sim.models import Request
-from elevator_sim.schedulers.base import Scheduler, available, create, register
+from elevator_sim.schedulers.base import (
+    Scheduler,
+    available,
+    create,
+    register,
+    unregister,
+)
 from elevator_sim.simulation import Simulation, SimulationConfig
 
 SPEC_EXAMPLE = [
@@ -68,8 +74,12 @@ def test_no_look_ahead():
         Request(time=5, id="b", source=1, dest=10),
         Request(time=20, id="c", source=10, dest=1),
     ]
-    sim = make_sim("spy", floors=10, elevators=1, capacity=10)
-    sim.run(reqs)
+    try:
+        sim = make_sim("spy", floors=10, elevators=1, capacity=10)
+        sim.run(reqs)
+    finally:
+        # Leave the global registry as we found it.
+        unregister("spy")
     assert seen_times, "scheduler was never consulted"
     assert all(req_time <= now for now, req_time in seen_times)
 

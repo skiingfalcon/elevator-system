@@ -82,7 +82,7 @@ def test_direction_logic_no_reverse_with_stops_ahead():
     seen_down_while_targets_above = False
     for now in range(30):
         e.step(now)
-        targets = e._target_floors()
+        targets = e.target_floors()
         if e.direction == Direction.DOWN and any(t > e.floor for t in targets):
             seen_down_while_targets_above = True
     assert not seen_down_while_targets_above

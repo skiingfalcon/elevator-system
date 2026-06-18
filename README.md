@@ -48,9 +48,10 @@ python -m elevator_sim \
 
 1. **Elevator positions log** (`--log-out`): one row per tick,
    `tick,elevator_0,elevator_1,...` giving every car's floor at that time.
-2. **Passenger summary statistics** (stdout): min / max / average / median of
-   `wait_time`, `travel_time`, and `total_time`, plus notable observations
-   (longest single wait, busiest pickup floor, throughput).
+2. **Passenger summary statistics** (stdout): min / max / average / median / p95
+   of `wait_time`, `travel_time`, and `total_time`, plus notable observations
+   (longest single wait, 95th-percentile tail latency, busiest pickup floor,
+   throughput, and floors traveled per car).
 3. **Charts** (with `--plot`): time-distribution histograms and an
    elevator-position-over-time line chart.
 
@@ -200,5 +201,5 @@ switching to an ETA-along-the-SCAN-run estimate fixed it) plus the README.
 - **Dwell time and acceleration** for a more realistic physical model.
 - **Expose zone boundaries on the CLI** (express elevators are now configurable
   via `--express`), plus per-elevator configuration files.
-- **Richer metrics** — energy/distance traveled per car, percentile latencies, and
-  live load balancing under sustained traffic.
+- **Richer metrics** — distance per car and p95 latency are now reported; energy
+  modeling and live load balancing under sustained traffic are still open.
