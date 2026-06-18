@@ -58,6 +58,32 @@ class Elevator:
         """
         return len(self.onboard) + len(self.assigned)
 
+    def eta_to(self, floor: int) -> int:
+        """Estimate ticks until this car could reach ``floor``.
+
+        Rather than raw current-floor distance, this accounts for the car's
+        committed SCAN run: a busy car heading away must finish its current sweep
+        before it can double back, which makes overloaded / wrong-direction cars
+        genuinely expensive. Schedulers use this to spread load instead of piling
+        onto one car.
+        """
+        cur = self.floor
+        if self.direction == Direction.IDLE or not self.is_busy():
+            return abs(cur - floor)
+
+        targets = self.target_floors()
+        if self.direction == Direction.UP:
+            extreme = max(targets | {cur})
+            if floor >= cur:
+                return floor - cur  # reachable on the way up
+            # Up to the top of the run, then back down to the floor.
+            return (extreme - cur) + (extreme - floor)
+        # DOWN
+        extreme = min(targets | {cur})
+        if floor <= cur:
+            return cur - floor
+        return (cur - extreme) + (floor - extreme)
+
     def serves(self, floor: int) -> bool:
         """Whether this car is allowed to stop at ``floor`` (always True unless express)."""
         return self.served_floors is None or floor in self.served_floors
@@ -86,8 +112,12 @@ class Elevator:
     # ------------------------------------------------------------------ #
     # Stop planning
     # ------------------------------------------------------------------ #
-    def _target_floors(self) -> Set[int]:
-        """All floors this car still needs to visit (pickups + dropoffs)."""
+    def target_floors(self) -> Set[int]:
+        """All floors this car still needs to visit (pickups + dropoffs).
+
+        Part of the public query surface schedulers use to reason about a car's
+        committed plan.
+        """
         floors: Set[int] = {p.dest for p in self.onboard}
         floors |= {p.source for p in self.assigned}
         return floors
@@ -98,7 +128,7 @@ class Elevator:
         Keep going in the current direction while stops remain ahead; otherwise
         flip toward the nearest pending stop; otherwise go idle.
         """
-        targets = self._target_floors()
+        targets = self.target_floors()
         if not targets:
             return Direction.IDLE
 
@@ -134,7 +164,7 @@ class Elevator:
         self._board(now)
 
         # If nothing remains, settle to idle.
-        if not self._target_floors():
+        if not self.target_floors():
             self.direction = Direction.IDLE
 
     def _alight(self, now: int) -> None:

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import statistics
 from dataclasses import dataclass
-from typing import List, Sequence
+from typing import List, Optional, Sequence
 
 from elevator_sim.models import Passenger
 
@@ -20,17 +20,31 @@ class MetricStats:
     maximum: float
     average: float
     median: float
+    p95: float  # 95th-percentile (tail latency)
 
     @classmethod
     def of(cls, values: Sequence[float]) -> "MetricStats":
         if not values:
-            return cls(0.0, 0.0, 0.0, 0.0)
+            return cls(0.0, 0.0, 0.0, 0.0, 0.0)
         return cls(
             minimum=min(values),
             maximum=max(values),
             average=statistics.fmean(values),
             median=statistics.median(values),
+            p95=_percentile(values, 95),
         )
+
+
+def _percentile(values: Sequence[float], pct: float) -> float:
+    """Linear-interpolated ``pct`` percentile (matches numpy's default)."""
+    ordered = sorted(values)
+    if len(ordered) == 1:
+        return float(ordered[0])
+    rank = (pct / 100) * (len(ordered) - 1)
+    lo = int(rank)
+    hi = min(lo + 1, len(ordered) - 1)
+    frac = rank - lo
+    return ordered[lo] + (ordered[hi] - ordered[lo]) * frac
 
 
 @dataclass
@@ -43,9 +57,27 @@ class Summary:
     ticks_elapsed: int
     busiest_pickup_floor: int
     throughput: float  # passengers delivered per tick
+    #: Floors traveled by each car over the whole run (index = elevator index).
+    distance_per_car: List[int] = None  # type: ignore[assignment]
 
 
-def summarize(passengers: List[Passenger], ticks_elapsed: int) -> Summary:
+def _distance_per_car(position_history: Sequence[Sequence[int]]) -> List[int]:
+    """Total floors each car moved, summed over the run from its position log."""
+    if not position_history:
+        return []
+    num_cars = len(position_history[0])
+    distances = [0] * num_cars
+    for prev, cur in zip(position_history, position_history[1:]):
+        for i in range(num_cars):
+            distances[i] += abs(cur[i] - prev[i])
+    return distances
+
+
+def summarize(
+    passengers: List[Passenger],
+    ticks_elapsed: int,
+    position_history: Optional[Sequence[Sequence[int]]] = None,
+) -> Summary:
     delivered = [p for p in passengers if p.delivered]
 
     waits = [p.wait_time for p in delivered if p.wait_time is not None]
@@ -66,6 +98,7 @@ def summarize(passengers: List[Passenger], ticks_elapsed: int) -> Summary:
         ticks_elapsed=ticks_elapsed,
         busiest_pickup_floor=busiest,
         throughput=(len(delivered) / ticks_elapsed) if ticks_elapsed else 0.0,
+        distance_per_car=_distance_per_car(position_history or []),
     )
 
 
@@ -75,13 +108,13 @@ def format_report(summary: Summary) -> str:
     def line(label: str, m: MetricStats) -> str:
         return (
             f"  {label:<12} min={m.minimum:6.1f}  max={m.maximum:6.1f}  "
-            f"avg={m.average:6.2f}  median={m.median:6.1f}"
+            f"avg={m.average:6.2f}  median={m.median:6.1f}  p95={m.p95:6.1f}"
         )
 
     lines = [
-        "=" * 60,
+        "=" * 72,
         "Passenger Summary Statistics",
-        "=" * 60,
+        "=" * 72,
         f"Passengers:        {summary.count} requested, {summary.delivered} delivered",
         f"Simulation length: {summary.ticks_elapsed} ticks",
         "",
@@ -93,8 +126,15 @@ def format_report(summary: Summary) -> str:
         "Notable observations:",
         f"  Longest single wait:  {summary.wait.maximum:.0f} ticks "
         f"(no passenger waited indefinitely)",
+        f"  95th-pct total_time:  {summary.total.p95:.0f} ticks (tail latency)",
         f"  Busiest pickup floor: {summary.busiest_pickup_floor}",
         f"  Throughput:           {summary.throughput:.3f} passengers/tick",
-        "=" * 60,
     ]
+    if summary.distance_per_car:
+        per_car = "  ".join(
+            f"e{i}={d}" for i, d in enumerate(summary.distance_per_car)
+        )
+        total_dist = sum(summary.distance_per_car)
+        lines.append(f"  Distance per car:     {per_car}  (total {total_dist} floors)")
+    lines.append("=" * 72)
     return "\n".join(lines)

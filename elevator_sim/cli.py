@@ -113,25 +113,27 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("No requests found in input; nothing to simulate.", file=sys.stderr)
         return 1
 
+    # Setup and run share one error path: bad config, a malformed --express spec,
+    # or unserveable/out-of-range requests all report cleanly instead of tracing back.
     try:
         express = parse_express(args.express, args.elevators)
+        config = SimulationConfig(
+            floors=args.floors,
+            num_elevators=args.elevators,
+            capacity=args.capacity,
+            start_floor=args.start_floor,
+            express_floors=express,
+        )
+        scheduler = _make_scheduler(args.scheduler, args.floors, args.elevators)
+        sim = Simulation(config, scheduler)
+        result = sim.run(requests, log_path=args.log_out)
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    config = SimulationConfig(
-        floors=args.floors,
-        num_elevators=args.elevators,
-        capacity=args.capacity,
-        start_floor=args.start_floor,
-        express_floors=express,
+    summary = summarize(
+        result.passengers, result.ticks_elapsed, result.position_history
     )
-    scheduler = _make_scheduler(args.scheduler, args.floors, args.elevators)
-
-    sim = Simulation(config, scheduler)
-    result = sim.run(requests, log_path=args.log_out)
-
-    summary = summarize(result.passengers, result.ticks_elapsed)
     print(f"Scheduler: {args.scheduler}  |  "
           f"{config.num_elevators} elevators, {config.floors} floors, "
           f"capacity {config.capacity}")

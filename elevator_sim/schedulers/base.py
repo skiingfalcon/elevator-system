@@ -45,6 +45,15 @@ def register(cls: Type[Scheduler]) -> Type[Scheduler]:
     return cls
 
 
+def unregister(name: str) -> None:
+    """Remove a scheduler from the registry (no-op if absent).
+
+    Mainly useful for tests that register a throwaway scheduler and want to leave
+    the global registry as they found it.
+    """
+    _REGISTRY.pop(name, None)
+
+
 def available() -> List[str]:
     return sorted(_REGISTRY)
 
