@@ -9,10 +9,6 @@ If the zone's owner is full, we fall back to the nearest available car so the
 "serve all eventually" guarantee still holds.
 """
 
-from __future__ import annotations
-
-from typing import List, Optional
-
 from elevator_sim.elevator import Elevator
 from elevator_sim.models import Passenger
 from elevator_sim.schedulers.base import Scheduler, register
@@ -34,8 +30,8 @@ class ZoneBasedScheduler(Scheduler):
         return min(idx, n - 1)
 
     def choose(
-        self, passenger: Passenger, elevators: List[Elevator], now: int
-    ) -> Optional[int]:
+        self, passenger: Passenger, elevators: list[Elevator], now: int
+    ) -> int | None:
         owner = self._owner_for_floor(passenger.source)
         if owner < len(elevators) and elevators[owner].can_accept(passenger):
             return owner

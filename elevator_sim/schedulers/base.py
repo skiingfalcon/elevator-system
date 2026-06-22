@@ -5,10 +5,7 @@ does **not** move elevators — that is the elevator's job. Schedulers see only 
 current state of the system (no look-ahead into future requests).
 """
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Type
 
 from elevator_sim.elevator import Elevator
 from elevator_sim.models import Passenger
@@ -22,8 +19,8 @@ class Scheduler(ABC):
 
     @abstractmethod
     def choose(
-        self, passenger: Passenger, elevators: List[Elevator], now: int
-    ) -> Optional[int]:
+        self, passenger: Passenger, elevators: list[Elevator], now: int
+    ) -> int | None:
         """Return the index of the elevator to assign ``passenger`` to.
 
         Return ``None`` if no elevator can currently accept the passenger (the
@@ -36,10 +33,10 @@ class Scheduler(ABC):
 # --------------------------------------------------------------------------- #
 # Registry
 # --------------------------------------------------------------------------- #
-_REGISTRY: Dict[str, Type[Scheduler]] = {}
+_REGISTRY: dict[str, type[Scheduler]] = {}
 
 
-def register(cls: Type[Scheduler]) -> Type[Scheduler]:
+def register(cls: type[Scheduler]) -> type[Scheduler]:
     """Class decorator that registers a scheduler under its ``name``."""
     _REGISTRY[cls.name] = cls
     return cls
@@ -54,7 +51,7 @@ def unregister(name: str) -> None:
     _REGISTRY.pop(name, None)
 
 
-def available() -> List[str]:
+def available() -> list[str]:
     return sorted(_REGISTRY)
 
 

@@ -16,10 +16,6 @@ The scheduler decides *which* car a passenger is assigned to; the elevator decid
 *how* that passenger is physically served over time.
 """
 
-from __future__ import annotations
-
-from typing import List, Optional, Set
-
 from elevator_sim.models import Direction, Passenger
 
 
@@ -29,18 +25,18 @@ class Elevator:
         index: int,
         capacity: int,
         start_floor: int = 1,
-        served_floors: Optional[Set[int]] = None,
+        served_floors: set[int] | None = None,
     ) -> None:
         self.index = index
         self.capacity = capacity
         self.floor = start_floor
         self.direction = Direction.IDLE
         # Passengers who have boarded and not yet alighted.
-        self.onboard: List[Passenger] = []
+        self.onboard: list[Passenger] = []
         # Passengers assigned to this car but not yet picked up (waiting at a floor).
-        self.assigned: List[Passenger] = []
+        self.assigned: list[Passenger] = []
         # If non-empty, an express car that only serves these floors.
-        self.served_floors: Optional[Set[int]] = served_floors
+        self.served_floors: set[int] | None = served_floors
 
     # ------------------------------------------------------------------ #
     # Queries used by schedulers
@@ -112,13 +108,13 @@ class Elevator:
     # ------------------------------------------------------------------ #
     # Stop planning
     # ------------------------------------------------------------------ #
-    def target_floors(self) -> Set[int]:
+    def target_floors(self) -> set[int]:
         """All floors this car still needs to visit (pickups + dropoffs).
 
         Part of the public query surface schedulers use to reason about a car's
         committed plan.
         """
-        floors: Set[int] = {p.dest for p in self.onboard}
+        floors: set[int] = {p.dest for p in self.onboard}
         floors |= {p.source for p in self.assigned}
         return floors
 
@@ -169,7 +165,7 @@ class Elevator:
 
     def _alight(self, now: int) -> None:
         """Drop off any onboard passengers whose destination is the current floor."""
-        staying: List[Passenger] = []
+        staying: list[Passenger] = []
         for p in self.onboard:
             if p.dest == self.floor:
                 p.dropoff_time = now
@@ -179,7 +175,7 @@ class Elevator:
 
     def _board(self, now: int) -> None:
         """Board waiting assignees at the current floor that match our direction."""
-        still_waiting: List[Passenger] = []
+        still_waiting: list[Passenger] = []
         for p in self.assigned:
             boardable = (
                 p.source == self.floor

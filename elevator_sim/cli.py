@@ -9,13 +9,10 @@ Example::
         --log-out positions.log --plot
 """
 
-from __future__ import annotations
-
 import argparse
 import sys
-from typing import List, Optional, Sequence, Set
+from collections.abc import Sequence
 
-from elevator_sim import schedulers
 from elevator_sim.io_utils import parse_requests
 from elevator_sim.schedulers.base import available, create
 from elevator_sim.simulation import Simulation, SimulationConfig
@@ -64,8 +61,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def parse_express(
-    specs: Optional[Sequence[str]], num_elevators: int
-) -> Optional[List[Optional[Set[int]]]]:
+    specs: Sequence[str] | None, num_elevators: int
+) -> list[set[int] | None] | None:
     """Turn ``--express IDX:F1,F2,...`` specs into a per-elevator served-floors list.
 
     Returns ``None`` when no express cars are configured (all full-service), or a
@@ -75,7 +72,7 @@ def parse_express(
     if not specs:
         return None
 
-    served: List[Optional[Set[int]]] = [None] * num_elevators
+    served: list[set[int] | None] = [None] * num_elevators
     for spec in specs:
         if ":" not in spec:
             raise ValueError(f"Malformed --express {spec!r}; expected IDX:F1,F2,...")
@@ -105,7 +102,7 @@ def _make_scheduler(name: str, floors: int, num_elevators: int):
     return create(name)
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
     requests = parse_requests(args.input)

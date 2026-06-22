@@ -5,10 +5,6 @@ and direction, so it usually has worse total times than nearest-car. Included to
 demonstrate the fairness-vs-efficiency trade-off.
 """
 
-from __future__ import annotations
-
-from typing import List, Optional
-
 from elevator_sim.elevator import Elevator
 from elevator_sim.models import Passenger
 from elevator_sim.schedulers.base import Scheduler, register
@@ -22,8 +18,8 @@ class RoundRobinScheduler(Scheduler):
         self._cursor = 0
 
     def choose(
-        self, passenger: Passenger, elevators: List[Elevator], now: int
-    ) -> Optional[int]:
+        self, passenger: Passenger, elevators: list[Elevator], now: int
+    ) -> int | None:
         n = len(elevators)
         # Try each car once, starting at the cursor, until one can accept.
         for offset in range(n):
