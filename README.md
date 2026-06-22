@@ -88,7 +88,10 @@ engine, in order:
 3. **Advances** every car one floor and processes drop-offs then pick-ups.
 4. **Logs** all car positions.
 
-The loop ends when every passenger has been delivered.
+The loop ends when every passenger has been delivered. The positions logged for
+tick `n` are the cars' floors *after* that tick's movement, so the row for tick 0
+already reflects the first step (a car's initial floor only appears if it doesn't
+move on tick 0).
 
 ### Components
 
@@ -107,9 +110,9 @@ The loop ends when every passenger has been delivered.
 
 - **`nearest_car`** (default) — assigns each passenger to the car with the lowest
   estimated time-to-pickup. The estimate models the car's committed SCAN run (a
-  car heading away must finish its sweep before doubling back), adds a congestion
-  term per outstanding stop so load spreads across the bank, and subtracts an
-  **aging bonus** that grows with how long the passenger has already waited.
+  car heading away must finish its sweep before doubling back) and adds a congestion
+  term per outstanding stop so load spreads across the bank. Fairness is handled by
+  the dispatcher (oldest-first), not the cost function — see below.
 - **`round_robin`** — cycles through cars regardless of position. Simple and
   spreads load evenly, but ignores distance/direction.
 - **`zone_based`** — partitions floors into contiguous zones, one per car;
@@ -120,9 +123,14 @@ The loop ends when every passenger has been delivered.
 
 ## How elevator constraints are guaranteed
 
-- **Serve all requests eventually** — every scheduler always returns *some* car
-  when one has spare capacity, and `nearest_car`'s aging bonus keeps lowering a
-  waiting passenger's cost so they can't be starved. The randomized stress test
+- **Serve all requests eventually** — three things combine to guarantee it: every
+  scheduler returns *some* car whenever one has spare capacity; each car's SCAN
+  sweep always makes progress and so continually frees capacity; and the dispatcher
+  considers waiting passengers **oldest-first**, so under capacity pressure the
+  longest-waiting passenger always gets first pick of a free car. (Fairness lives
+  here, in dispatch order — *not* in the cost function: a per-passenger term added
+  there would be identical across every candidate car and so could never change
+  which car is chosen.) The randomized stress test
   (`tests/test_simulation.py::test_no_starvation_on_stress`) asserts every
   passenger is delivered.
 - **Capacity** — enforced inside `Elevator`: assignments and boardings are refused

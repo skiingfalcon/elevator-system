@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 
 from elevator_sim.elevator import Elevator
 from elevator_sim.io_utils import PathLike, PositionLogWriter
-from elevator_sim.models import Passenger, PassengerState, Request
+from elevator_sim.models import Passenger, Request
 from elevator_sim.schedulers.base import Scheduler
 
 
@@ -127,14 +127,13 @@ class Simulation:
                 # 2. Dispatch pending passengers.
                 pending = self._dispatch(pending, now)
 
-                # 3. Advance every elevator one floor.
+                # 3. Advance every elevator one floor, accumulating this tick's
+                #    deliveries (each step() reports how many it dropped off, so we
+                #    avoid rescanning every passenger every tick).
                 for e in self.elevators:
-                    e.step(now)
+                    delivered += e.step(now)
 
-                # 4. Count deliveries and log positions.
-                delivered = sum(
-                    1 for p in all_passengers if p.state is PassengerState.DELIVERED
-                )
+                # 4. Log positions.
                 floors = [e.floor for e in self.elevators]
                 history.append(floors)
                 if log is not None:
@@ -187,9 +186,15 @@ class Simulation:
                 )
 
     def _dispatch(self, pending: list[Passenger], now: int) -> list[Passenger]:
-        """Assign as many pending passengers as possible; return those still waiting."""
+        """Assign as many pending passengers as possible; return those still waiting.
+
+        Passengers are considered **oldest-first** (by request time) so that when
+        capacity is scarce the longest-waiting passengers get first pick of the
+        free cars. This — together with each car's SCAN sweep always making
+        progress and freeing capacity — is what guarantees no passenger is starved.
+        """
         still_pending: list[Passenger] = []
-        for p in pending:
+        for p in sorted(pending, key=lambda p: p.request_time):
             idx = self.scheduler.choose(p, self.elevators, now)
             if idx is None:
                 still_pending.append(p)

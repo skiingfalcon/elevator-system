@@ -15,7 +15,7 @@ import argparse
 import random
 
 from elevator_sim.models import Request
-from elevator_sim.schedulers.base import available, create
+from elevator_sim.schedulers.base import available, build
 from elevator_sim.simulation import Simulation, SimulationConfig
 from elevator_sim.stats import summarize
 
@@ -39,10 +39,7 @@ def make_workload(
 
 def run_one(name: str, reqs, floors: int, elevators: int, capacity: int):
     cfg = SimulationConfig(floors=floors, num_elevators=elevators, capacity=capacity)
-    if name == "zone_based":
-        sched = create(name, floors=floors, num_elevators=elevators)
-    else:
-        sched = create(name)
+    sched = build(name, floors=floors, num_elevators=elevators)
     result = Simulation(cfg, sched).run(reqs)
     return summarize(result.passengers, result.ticks_elapsed)
 

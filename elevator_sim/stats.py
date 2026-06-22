@@ -65,7 +65,7 @@ def _distance_per_car(position_history: Sequence[Sequence[int]]) -> list[int]:
         return []
     num_cars = len(position_history[0])
     distances = [0] * num_cars
-    for prev, cur in zip(position_history, position_history[1:]):
+    for prev, cur in zip(position_history, position_history[1:], strict=False):
         for i in range(num_cars):
             distances[i] += abs(cur[i] - prev[i])
     return distances

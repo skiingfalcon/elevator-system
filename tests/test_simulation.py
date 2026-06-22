@@ -9,6 +9,7 @@ from elevator_sim.models import Request
 from elevator_sim.schedulers.base import (
     Scheduler,
     available,
+    build,
     create,
     register,
     unregister,
@@ -24,10 +25,7 @@ SPEC_EXAMPLE = [
 
 def make_sim(scheduler_name="nearest_car", floors=60, elevators=3, capacity=8):
     cfg = SimulationConfig(floors=floors, num_elevators=elevators, capacity=capacity)
-    if scheduler_name == "zone_based":
-        sched = create(scheduler_name, floors=floors, num_elevators=elevators)
-    else:
-        sched = create(scheduler_name)
+    sched = build(scheduler_name, floors=floors, num_elevators=elevators)
     return Simulation(cfg, sched)
 
 
@@ -99,8 +97,9 @@ def test_capacity_never_exceeded_during_run():
         original = e.step
 
         def checked_step(now, _e=e, _orig=original):
-            _orig(now)
+            delivered = _orig(now)
             assert _e.load <= _e.capacity, f"capacity exceeded: {_e}"
+            return delivered
 
         e.step = checked_step
 

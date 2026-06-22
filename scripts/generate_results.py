@@ -21,7 +21,7 @@ from pathlib import Path
 
 from elevator_sim.io_utils import parse_requests
 from elevator_sim.models import Request
-from elevator_sim.schedulers.base import available, create
+from elevator_sim.schedulers.base import available, build
 from elevator_sim.simulation import Simulation, SimulationConfig
 from elevator_sim.stats import Summary, summarize
 
@@ -122,11 +122,8 @@ def run(scenario: dict, scheduler_name: str) -> Summary:
         num_elevators=scenario["elevators"],
         capacity=scenario["capacity"],
     )
-    if scheduler_name == "zone_based":
-        sched = create(scheduler_name, floors=scenario["floors"],
-                       num_elevators=scenario["elevators"])
-    else:
-        sched = create(scheduler_name)
+    sched = build(scheduler_name, floors=scenario["floors"],
+                  num_elevators=scenario["elevators"])
     result = Simulation(cfg, sched).run(scenario["reqs"])
     return summarize(result.passengers, result.ticks_elapsed, result.position_history)
 

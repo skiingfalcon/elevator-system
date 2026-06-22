@@ -14,7 +14,7 @@ import sys
 from collections.abc import Sequence
 
 from elevator_sim.io_utils import parse_requests
-from elevator_sim.schedulers.base import available, create
+from elevator_sim.schedulers.base import available, build
 from elevator_sim.simulation import Simulation, SimulationConfig
 from elevator_sim.stats import format_report, summarize
 
@@ -80,7 +80,9 @@ def parse_express(
         try:
             idx = int(idx_str)
         except ValueError:
-            raise ValueError(f"Malformed --express {spec!r}; elevator index must be an integer")
+            raise ValueError(
+                f"Malformed --express {spec!r}; elevator index must be an integer"
+            ) from None
         if not 0 <= idx < num_elevators:
             raise ValueError(
                 f"--express index {idx} out of range for {num_elevators} elevators (0..{num_elevators - 1})"
@@ -88,18 +90,13 @@ def parse_express(
         try:
             floors = {int(f) for f in floors_str.split(",") if f.strip()}
         except ValueError:
-            raise ValueError(f"Malformed --express {spec!r}; floors must be integers")
+            raise ValueError(
+                f"Malformed --express {spec!r}; floors must be integers"
+            ) from None
         if not floors:
             raise ValueError(f"--express {spec!r} lists no floors")
         served[idx] = floors
     return served
-
-
-def _make_scheduler(name: str, floors: int, num_elevators: int):
-    # zone_based needs to know the building shape to compute zones.
-    if name == "zone_based":
-        return create(name, floors=floors, num_elevators=num_elevators)
-    return create(name)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -121,7 +118,9 @@ def main(argv: list[str] | None = None) -> int:
             start_floor=args.start_floor,
             express_floors=express,
         )
-        scheduler = _make_scheduler(args.scheduler, args.floors, args.elevators)
+        scheduler = build(
+            args.scheduler, floors=args.floors, num_elevators=args.elevators
+        )
         sim = Simulation(config, scheduler)
         result = sim.run(requests, log_path=args.log_out)
     except ValueError as exc:
