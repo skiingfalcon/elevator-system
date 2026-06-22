@@ -9,6 +9,8 @@ venv/
 # Simulation outputs
 positions.log
 *.png
+# ...but keep the committed comparison charts under results/
+!results/*.png
 
 # OS
 .DS_Store
