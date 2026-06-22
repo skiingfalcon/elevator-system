@@ -11,7 +11,7 @@ This implements the take-home spec in [`Take_home_Elevator.md`](Take_home_Elevat
 
 ## How to run
 
-The core simulation depends only on the Python standard library (Python 3.9+).
+The core simulation depends only on the Python standard library (Python 3.13+).
 Dependencies are managed with [uv](https://docs.astral.sh/uv/). The only
 non-stdlib packages are optional extras: `matplotlib` (for `--plot`, in the
 `plot` extra) and `pytest` (for the test suite, in the `dev` group).
