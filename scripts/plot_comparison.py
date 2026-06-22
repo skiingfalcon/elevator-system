@@ -63,7 +63,7 @@ def plot_avg_total(rows: list[dict[str, str]], plt) -> Path:
         offsets = [xi + (i - 1) * width for xi in x]
         vals = [lookup.get((sc, sched), 0.0) for sc in scenarios]
         bars = ax.bar(offsets, vals, width, label=sched, color=COLORS[sched])
-        for b, v in zip(bars, vals):
+        for b, v in zip(bars, vals, strict=True):
             ax.text(b.get_x() + b.get_width() / 2, v + 1.5, f"{v:.0f}",
                     ha="center", va="bottom", fontsize=8)
 
@@ -112,7 +112,7 @@ def main() -> int:
     except ImportError:
         raise SystemExit(
             "matplotlib is required. Install with `uv sync --extra plot`."
-        )
+        ) from None
 
     rows = load_rows()
     p1 = plot_avg_total(rows, plt)

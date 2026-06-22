@@ -142,40 +142,53 @@ class Elevator:
     # ------------------------------------------------------------------ #
     # Per-tick advance
     # ------------------------------------------------------------------ #
-    def step(self, now: int) -> None:
-        """Advance the elevator by one tick.
+    def step(self, now: int) -> int:
+        """Advance the elevator by one tick; return how many passengers it delivered.
 
         Order of operations within a tick:
           1. Decide direction based on outstanding stops.
           2. Move one floor in that direction (if any).
           3. Drop off arrivals, then board waiting assignees (respecting capacity
              and direction).
+
+        Returning the delivered count lets the simulation maintain a running total
+        without rescanning every passenger each tick.
         """
         self.direction = self._next_direction()
 
         if self.direction != Direction.IDLE:
             self.floor += self.direction.value
 
-        self._alight(now)
-        self._board(now)
+        delivered = self._alight(now)
+        delivered += self._board(now)
 
         # If nothing remains, settle to idle.
         if not self.target_floors():
             self.direction = Direction.IDLE
 
-    def _alight(self, now: int) -> None:
-        """Drop off any onboard passengers whose destination is the current floor."""
+        return delivered
+
+    def _alight(self, now: int) -> int:
+        """Drop off onboard passengers at the current floor; return how many."""
         staying: list[Passenger] = []
+        delivered = 0
         for p in self.onboard:
             if p.dest == self.floor:
                 p.dropoff_time = now
+                delivered += 1
             else:
                 staying.append(p)
         self.onboard = staying
+        return delivered
 
-    def _board(self, now: int) -> None:
-        """Board waiting assignees at the current floor that match our direction."""
+    def _board(self, now: int) -> int:
+        """Board waiting assignees at the current floor that match our direction.
+
+        Returns the number delivered *in this same tick* — i.e. degenerate
+        ``source == dest`` requests that are picked up and dropped off at once.
+        """
         still_waiting: list[Passenger] = []
+        delivered = 0
         for p in self.assigned:
             boardable = (
                 p.source == self.floor
@@ -188,6 +201,7 @@ class Elevator:
                     # Degenerate request (source == dest): pick up and drop off
                     # in the same tick rather than carrying them.
                     p.dropoff_time = now
+                    delivered += 1
                 else:
                     self.onboard.append(p)
                     # Adopt the passenger's direction if we were idle.
@@ -196,6 +210,7 @@ class Elevator:
             else:
                 still_waiting.append(p)
         self.assigned = still_waiting
+        return delivered
 
     def _direction_ok_for(self, p: Passenger) -> bool:
         """A passenger may board only if their travel direction matches ours."""

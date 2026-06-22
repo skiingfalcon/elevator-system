@@ -22,6 +22,11 @@ class ZoneBasedScheduler(Scheduler):
         self.floors = floors
         self.num_elevators = num_elevators
 
+    @classmethod
+    def from_config(cls, *, floors: int, num_elevators: int) -> "ZoneBasedScheduler":
+        # Unlike the other schedulers, zones depend on the building's shape.
+        return cls(floors=floors, num_elevators=num_elevators)
+
     def _owner_for_floor(self, floor: int) -> int:
         """Map a floor (1-based) to the elevator index owning its zone."""
         n = max(self.num_elevators, 1)

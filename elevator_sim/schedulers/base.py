@@ -29,6 +29,16 @@ class Scheduler(ABC):
         """
         raise NotImplementedError
 
+    @classmethod
+    def from_config(cls, *, floors: int, num_elevators: int) -> "Scheduler":
+        """Build a scheduler given the building's shape.
+
+        The default ignores both dimensions; schedulers that need them (e.g.
+        ``zone_based``) override this. Having one construction hook keeps callers
+        from special-casing individual schedulers — see :func:`build`.
+        """
+        return cls()
+
 
 # --------------------------------------------------------------------------- #
 # Registry
@@ -55,12 +65,25 @@ def available() -> list[str]:
     return sorted(_REGISTRY)
 
 
-def create(name: str, **kwargs) -> Scheduler:
-    """Instantiate a scheduler by name (factory used by the CLI)."""
+def _lookup(name: str) -> type[Scheduler]:
     try:
-        cls = _REGISTRY[name]
+        return _REGISTRY[name]
     except KeyError:
         raise ValueError(
             f"Unknown scheduler {name!r}. Available: {', '.join(available())}"
-        )
-    return cls(**kwargs)
+        ) from None
+
+
+def create(name: str, **kwargs) -> Scheduler:
+    """Instantiate a scheduler by name with explicit kwargs (low-level factory)."""
+    return _lookup(name)(**kwargs)
+
+
+def build(name: str, *, floors: int, num_elevators: int) -> Scheduler:
+    """Instantiate a scheduler by name, supplying the building shape uniformly.
+
+    Every caller that knows the building dimensions should use this instead of
+    branching on the scheduler name: each scheduler's :meth:`Scheduler.from_config`
+    decides for itself which dimensions it needs.
+    """
+    return _lookup(name).from_config(floors=floors, num_elevators=num_elevators)
