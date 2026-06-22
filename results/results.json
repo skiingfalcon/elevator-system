@@ -1,0 +1,537 @@
+{
+  "scenarios": {
+    "Provided sample (15 reqs)": {
+      "config": {
+        "floors": 60,
+        "elevators": 3,
+        "capacity": 8,
+        "passengers": 15
+      },
+      "schedulers": {
+        "nearest_car": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 81,
+            "average": 41.93333333333333,
+            "median": 50,
+            "p95": 80.3
+          },
+          "travel": {
+            "minimum": 0,
+            "maximum": 59,
+            "average": 35.733333333333334,
+            "median": 36,
+            "p95": 59.0
+          },
+          "total": {
+            "minimum": 36,
+            "maximum": 125,
+            "average": 77.66666666666667,
+            "median": 81,
+            "p95": 117.99999999999999
+          },
+          "sim_length": 146,
+          "throughput": 0.10273972602739725,
+          "delivered": 15,
+          "distance_per_car": [
+            144,
+            118,
+            59
+          ]
+        },
+        "round_robin": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 61,
+            "average": 37.4,
+            "median": 42,
+            "p95": 59.599999999999994
+          },
+          "travel": {
+            "minimum": 0,
+            "maximum": 59,
+            "average": 35.733333333333334,
+            "median": 36,
+            "p95": 59.0
+          },
+          "total": {
+            "minimum": 21,
+            "maximum": 118,
+            "average": 73.13333333333334,
+            "median": 78,
+            "p95": 110.29999999999998
+          },
+          "sim_length": 133,
+          "throughput": 0.11278195488721804,
+          "delivered": 15,
+          "distance_per_car": [
+            118,
+            131,
+            121
+          ]
+        },
+        "zone_based": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 87,
+            "average": 52.4,
+            "median": 59,
+            "p95": 82.8
+          },
+          "travel": {
+            "minimum": 0,
+            "maximum": 59,
+            "average": 35.733333333333334,
+            "median": 36,
+            "p95": 59.0
+          },
+          "total": {
+            "minimum": 36,
+            "maximum": 146,
+            "average": 88.13333333333334,
+            "median": 90,
+            "p95": 131.29999999999998
+          },
+          "sim_length": 161,
+          "throughput": 0.09316770186335403,
+          "delivered": 15,
+          "distance_per_car": [
+            159,
+            110,
+            118
+          ]
+        }
+      }
+    },
+    "Mixed traffic (200 reqs)": {
+      "config": {
+        "floors": 60,
+        "elevators": 4,
+        "capacity": 8,
+        "passengers": 200
+      },
+      "schedulers": {
+        "nearest_car": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 241,
+            "average": 114.65,
+            "median": 106.0,
+            "p95": 219.04999999999998
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 54,
+            "average": 20.255,
+            "median": 18.0,
+            "p95": 45.04999999999998
+          },
+          "total": {
+            "minimum": 4,
+            "maximum": 278,
+            "average": 134.905,
+            "median": 130.0,
+            "p95": 236.04999999999998
+          },
+          "sim_length": 551,
+          "throughput": 0.3629764065335753,
+          "delivered": 200,
+          "distance_per_car": [
+            544,
+            477,
+            492,
+            477
+          ]
+        },
+        "round_robin": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 265,
+            "average": 126.57,
+            "median": 112.0,
+            "p95": 240.0
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 54,
+            "average": 20.255,
+            "median": 18.0,
+            "p95": 45.04999999999998
+          },
+          "total": {
+            "minimum": 12,
+            "maximum": 306,
+            "average": 146.825,
+            "median": 137.0,
+            "p95": 256.15
+          },
+          "sim_length": 583,
+          "throughput": 0.34305317324185247,
+          "delivered": 200,
+          "distance_per_car": [
+            558,
+            540,
+            576,
+            553
+          ]
+        },
+        "zone_based": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 277,
+            "average": 124.655,
+            "median": 113.0,
+            "p95": 231.39999999999986
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 54,
+            "average": 20.255,
+            "median": 18.0,
+            "p95": 45.04999999999998
+          },
+          "total": {
+            "minimum": 14,
+            "maximum": 304,
+            "average": 144.91,
+            "median": 134.5,
+            "p95": 253.19999999999993
+          },
+          "sim_length": 563,
+          "throughput": 0.3552397868561279,
+          "delivered": 200,
+          "distance_per_car": [
+            556,
+            508,
+            518,
+            541
+          ]
+        }
+      }
+    },
+    "Up-peak rush (150 reqs)": {
+      "config": {
+        "floors": 60,
+        "elevators": 4,
+        "capacity": 10,
+        "passengers": 150
+      },
+      "schedulers": {
+        "nearest_car": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 371,
+            "average": 182.73333333333332,
+            "median": 197.0,
+            "p95": 331.09999999999997
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 59,
+            "average": 29.85333333333333,
+            "median": 29.0,
+            "p95": 56.54999999999998
+          },
+          "total": {
+            "minimum": 12,
+            "maximum": 425,
+            "average": 212.58666666666667,
+            "median": 217.0,
+            "p95": 380.09999999999997
+          },
+          "sim_length": 487,
+          "throughput": 0.3080082135523614,
+          "delivered": 150,
+          "distance_per_car": [
+            394,
+            430,
+            422,
+            479
+          ]
+        },
+        "round_robin": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 375,
+            "average": 180.68,
+            "median": 166.0,
+            "p95": 351.54999999999995
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 59,
+            "average": 29.85333333333333,
+            "median": 29.0,
+            "p95": 56.54999999999998
+          },
+          "total": {
+            "minimum": 12,
+            "maximum": 408,
+            "average": 210.53333333333333,
+            "median": 195.5,
+            "p95": 386.65
+          },
+          "sim_length": 466,
+          "throughput": 0.3218884120171674,
+          "delivered": 150,
+          "distance_per_car": [
+            460,
+            459,
+            409,
+            443
+          ]
+        },
+        "zone_based": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 389,
+            "average": 196.82666666666665,
+            "median": 186.0,
+            "p95": 375.0
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 59,
+            "average": 29.85333333333333,
+            "median": 29.0,
+            "p95": 56.54999999999998
+          },
+          "total": {
+            "minimum": 4,
+            "maximum": 443,
+            "average": 226.68,
+            "median": 213.5,
+            "p95": 409.0
+          },
+          "sim_length": 498,
+          "throughput": 0.30120481927710846,
+          "delivered": 150,
+          "distance_per_car": [
+            479,
+            477,
+            486,
+            459
+          ]
+        }
+      }
+    },
+    "Down-peak rush (150 reqs)": {
+      "config": {
+        "floors": 60,
+        "elevators": 4,
+        "capacity": 10,
+        "passengers": 150
+      },
+      "schedulers": {
+        "nearest_car": {
+          "wait": {
+            "minimum": 37,
+            "maximum": 383,
+            "average": 201.06666666666666,
+            "median": 194.0,
+            "p95": 367.65
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 59,
+            "average": 29.85333333333333,
+            "median": 29.0,
+            "p95": 56.54999999999998
+          },
+          "total": {
+            "minimum": 70,
+            "maximum": 400,
+            "average": 230.92,
+            "median": 208.0,
+            "p95": 395.0
+          },
+          "sim_length": 457,
+          "throughput": 0.3282275711159737,
+          "delivered": 150,
+          "distance_per_car": [
+            452,
+            396,
+            348,
+            440
+          ]
+        },
+        "round_robin": {
+          "wait": {
+            "minimum": 36,
+            "maximum": 386,
+            "average": 205.46666666666667,
+            "median": 194.5,
+            "p95": 370.09999999999997
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 59,
+            "average": 29.85333333333333,
+            "median": 29.0,
+            "p95": 56.54999999999998
+          },
+          "total": {
+            "minimum": 80,
+            "maximum": 403,
+            "average": 235.32,
+            "median": 206.0,
+            "p95": 398.0
+          },
+          "sim_length": 460,
+          "throughput": 0.32608695652173914,
+          "delivered": 150,
+          "distance_per_car": [
+            446,
+            348,
+            454,
+            408
+          ]
+        },
+        "zone_based": {
+          "wait": {
+            "minimum": 19,
+            "maximum": 372,
+            "average": 187.4,
+            "median": 180.0,
+            "p95": 355.0
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 59,
+            "average": 29.85333333333333,
+            "median": 29.0,
+            "p95": 56.54999999999998
+          },
+          "total": {
+            "minimum": 45,
+            "maximum": 389,
+            "average": 217.25333333333333,
+            "median": 205.0,
+            "p95": 384.0
+          },
+          "sim_length": 446,
+          "throughput": 0.336322869955157,
+          "delivered": 150,
+          "distance_per_car": [
+            440,
+            374,
+            426,
+            348
+          ]
+        }
+      }
+    },
+    "Tall building (300 reqs)": {
+      "config": {
+        "floors": 100,
+        "elevators": 6,
+        "capacity": 12,
+        "passengers": 300
+      },
+      "schedulers": {
+        "nearest_car": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 242,
+            "average": 95.90333333333334,
+            "median": 89.5,
+            "p95": 203.05
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 93,
+            "average": 35.5,
+            "median": 33.0,
+            "p95": 78.05000000000001
+          },
+          "total": {
+            "minimum": 7,
+            "maximum": 299,
+            "average": 131.40333333333334,
+            "median": 135.0,
+            "p95": 236.05
+          },
+          "sim_length": 674,
+          "throughput": 0.44510385756676557,
+          "delivered": 300,
+          "distance_per_car": [
+            669,
+            635,
+            647,
+            618,
+            645,
+            593
+          ]
+        },
+        "round_robin": {
+          "wait": {
+            "minimum": 0,
+            "maximum": 258,
+            "average": 128.11333333333334,
+            "median": 125.0,
+            "p95": 225.10000000000002
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 93,
+            "average": 35.5,
+            "median": 33.0,
+            "p95": 78.05000000000001
+          },
+          "total": {
+            "minimum": 11,
+            "maximum": 312,
+            "average": 163.61333333333334,
+            "median": 162.5,
+            "p95": 263.1
+          },
+          "sim_length": 720,
+          "throughput": 0.4166666666666667,
+          "delivered": 300,
+          "distance_per_car": [
+            665,
+            641,
+            655,
+            657,
+            714,
+            650
+          ]
+        },
+        "zone_based": {
+          "wait": {
+            "minimum": 2,
+            "maximum": 262,
+            "average": 114.50333333333333,
+            "median": 108.0,
+            "p95": 219.0
+          },
+          "travel": {
+            "minimum": 1,
+            "maximum": 93,
+            "average": 35.5,
+            "median": 33.0,
+            "p95": 78.05000000000001
+          },
+          "total": {
+            "minimum": 16,
+            "maximum": 313,
+            "average": 150.00333333333333,
+            "median": 146.0,
+            "p95": 263.05
+          },
+          "sim_length": 686,
+          "throughput": 0.43731778425655976,
+          "delivered": 300,
+          "distance_per_car": [
+            643,
+            619,
+            650,
+            627,
+            594,
+            664
+          ]
+        }
+      }
+    }
+  }
+}
