@@ -13,14 +13,11 @@ All workloads are seeded, so the numbers are fully reproducible:
     python scripts/generate_results.py
 """
 
-from __future__ import annotations
-
 import csv
 import json
 import random
 from dataclasses import asdict
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
 
 from elevator_sim.io_utils import parse_requests
 from elevator_sim.models import Request
@@ -35,10 +32,10 @@ RESULTS_DIR = REPO_ROOT / "results"
 # --------------------------------------------------------------------------- #
 # Workload generators (all deterministic)
 # --------------------------------------------------------------------------- #
-def random_mixed(n: int, floors: int, seed: int, arrival_gap: int = 3) -> List[Request]:
+def random_mixed(n: int, floors: int, seed: int, arrival_gap: int = 3) -> list[Request]:
     """Uniformly random origin/destination traffic (general office flow)."""
     rng = random.Random(seed)
-    reqs: List[Request] = []
+    reqs: list[Request] = []
     t = 0
     for i in range(n):
         t += rng.randint(0, arrival_gap)
@@ -50,10 +47,10 @@ def random_mixed(n: int, floors: int, seed: int, arrival_gap: int = 3) -> List[R
     return reqs
 
 
-def up_peak(n: int, floors: int, seed: int) -> List[Request]:
+def up_peak(n: int, floors: int, seed: int) -> list[Request]:
     """Morning up-peak: almost everyone enters at the lobby heading up."""
     rng = random.Random(seed)
-    reqs: List[Request] = []
+    reqs: list[Request] = []
     t = 0
     for i in range(n):
         t += rng.randint(0, 1)  # tight clustering, like a swipe-in rush
@@ -62,10 +59,10 @@ def up_peak(n: int, floors: int, seed: int) -> List[Request]:
     return reqs
 
 
-def down_peak(n: int, floors: int, seed: int) -> List[Request]:
+def down_peak(n: int, floors: int, seed: int) -> list[Request]:
     """Evening down-peak: everyone heading to the lobby from upper floors."""
     rng = random.Random(seed)
-    reqs: List[Request] = []
+    reqs: list[Request] = []
     t = 0
     for i in range(n):
         t += rng.randint(0, 1)
@@ -77,7 +74,7 @@ def down_peak(n: int, floors: int, seed: int) -> List[Request]:
 # --------------------------------------------------------------------------- #
 # Scenarios: (label, requests, floors, elevators, capacity)
 # --------------------------------------------------------------------------- #
-def build_scenarios() -> List[Dict]:
+def build_scenarios() -> list[dict]:
     sample_csv = REPO_ROOT / "data" / "sample_requests.csv"
     scenarios = [
         {
@@ -119,7 +116,7 @@ def build_scenarios() -> List[Dict]:
     return scenarios
 
 
-def run(scenario: Dict, scheduler_name: str) -> Summary:
+def run(scenario: dict, scheduler_name: str) -> Summary:
     cfg = SimulationConfig(
         floors=scenario["floors"],
         num_elevators=scenario["elevators"],
@@ -145,7 +142,7 @@ CSV_FIELDS = [
 ]
 
 
-def summary_row(scenario_label: str, name: str, s: Summary) -> Dict:
+def summary_row(scenario_label: str, name: str, s: Summary) -> dict:
     return {
         "scenario": scenario_label,
         "scheduler": name,
@@ -164,7 +161,7 @@ def summary_row(scenario_label: str, name: str, s: Summary) -> Dict:
     }
 
 
-def write_csv(rows: List[Dict]) -> Path:
+def write_csv(rows: list[dict]) -> Path:
     path = RESULTS_DIR / "scheduler_comparison.csv"
     with open(path, "w", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=CSV_FIELDS)
@@ -173,16 +170,16 @@ def write_csv(rows: List[Dict]) -> Path:
     return path
 
 
-def write_json(nested: Dict) -> Path:
+def write_json(nested: dict) -> Path:
     path = RESULTS_DIR / "results.json"
     with open(path, "w") as fh:
         json.dump(nested, fh, indent=2)
     return path
 
 
-def write_markdown(rows: List[Dict], scenarios: List[Dict]) -> Path:
+def write_markdown(rows: list[dict], scenarios: list[dict]) -> Path:
     path = RESULTS_DIR / "scheduler_comparison.md"
-    lines: List[str] = [
+    lines: list[str] = [
         "# Scheduler Comparison Results",
         "",
         "Reproducible with `python scripts/generate_results.py`. "
@@ -190,7 +187,7 @@ def write_markdown(rows: List[Dict], scenarios: List[Dict]) -> Path:
         "",
     ]
 
-    by_scenario: Dict[str, List[Dict]] = {}
+    by_scenario: dict[str, list[dict]] = {}
     for r in rows:
         by_scenario.setdefault(r["scenario"], []).append(r)
 
@@ -242,8 +239,8 @@ def main() -> int:
     scenarios = build_scenarios()
     schedulers = available()
 
-    rows: List[Dict] = []
-    nested: Dict = {"scenarios": {}}
+    rows: list[dict] = []
+    nested: dict = {"scenarios": {}}
 
     for sc in scenarios:
         nested["scenarios"][sc["label"]] = {

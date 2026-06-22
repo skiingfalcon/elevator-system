@@ -15,10 +15,8 @@ The loop runs until every passenger has been delivered, with a safety cap to avo
 infinite loops on pathological input.
 """
 
-from __future__ import annotations
-
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import List, Optional, Sequence, Set
 
 from elevator_sim.elevator import Elevator
 from elevator_sim.io_utils import PathLike, PositionLogWriter
@@ -33,9 +31,9 @@ class SimulationConfig:
     capacity: int
     start_floor: int = 1
     #: Optional per-elevator express floor sets. ``None`` entries are full-service.
-    express_floors: Optional[Sequence[Optional[Set[int]]]] = None
+    express_floors: Sequence[set[int] | None] | None = None
     #: Hard cap on ticks (safety net). ``None`` => derive from problem size.
-    max_ticks: Optional[int] = None
+    max_ticks: int | None = None
 
     def __post_init__(self) -> None:
         if self.num_elevators < 1:
@@ -53,19 +51,19 @@ class SimulationConfig:
 
 @dataclass
 class SimulationResult:
-    passengers: List[Passenger]
+    passengers: list[Passenger]
     ticks_elapsed: int
     config: SimulationConfig
-    position_history: List[List[int]] = field(default_factory=list)
+    position_history: list[list[int]] = field(default_factory=list)
 
 
 class Simulation:
     def __init__(self, config: SimulationConfig, scheduler: Scheduler) -> None:
         self.config = config
         self.scheduler = scheduler
-        self.elevators: List[Elevator] = self._build_elevators()
+        self.elevators: list[Elevator] = self._build_elevators()
 
-    def _build_elevators(self) -> List[Elevator]:
+    def _build_elevators(self) -> list[Elevator]:
         express = self.config.express_floors or [None] * self.config.num_elevators
         elevators = []
         for i in range(self.config.num_elevators):
@@ -84,7 +82,7 @@ class Simulation:
     def run(
         self,
         requests: Sequence[Request],
-        log_path: Optional[PathLike] = None,
+        log_path: PathLike | None = None,
     ) -> SimulationResult:
         """Run the simulation to completion.
 
@@ -98,19 +96,19 @@ class Simulation:
         self._validate_requests(requests)
 
         # Group requests by release time without exposing the future to the scheduler.
-        by_time: dict[int, List[Request]] = {}
+        by_time: dict[int, list[Request]] = {}
         for r in requests:
             by_time.setdefault(r.time, []).append(r)
 
-        all_passengers: List[Passenger] = []
-        pending: List[Passenger] = []  # released, not yet assigned to a car
+        all_passengers: list[Passenger] = []
+        pending: list[Passenger] = []  # released, not yet assigned to a car
         total = len(requests)
         delivered = 0
 
         last_release = max(by_time) if by_time else 0
         cap = self.config.max_ticks or self._default_max_ticks(last_release)
 
-        history: List[List[int]] = []
+        history: list[list[int]] = []
         log = (
             PositionLogWriter(log_path, self.config.num_elevators)
             if log_path is not None
@@ -188,9 +186,9 @@ class Simulation:
                     f"any elevator; check express (--express) floor coverage"
                 )
 
-    def _dispatch(self, pending: List[Passenger], now: int) -> List[Passenger]:
+    def _dispatch(self, pending: list[Passenger], now: int) -> list[Passenger]:
         """Assign as many pending passengers as possible; return those still waiting."""
-        still_pending: List[Passenger] = []
+        still_pending: list[Passenger] = []
         for p in pending:
             idx = self.scheduler.choose(p, self.elevators, now)
             if idx is None:

@@ -5,11 +5,9 @@ few notable observations: medians, the busiest pickup floor, throughput, and a
 starvation check (the longest any single passenger waited).
 """
 
-from __future__ import annotations
-
 import statistics
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import List, Optional, Sequence
 
 from elevator_sim.models import Passenger
 
@@ -58,10 +56,10 @@ class Summary:
     busiest_pickup_floor: int
     throughput: float  # passengers delivered per tick
     #: Floors traveled by each car over the whole run (index = elevator index).
-    distance_per_car: List[int] = None  # type: ignore[assignment]
+    distance_per_car: list[int] | None = None
 
 
-def _distance_per_car(position_history: Sequence[Sequence[int]]) -> List[int]:
+def _distance_per_car(position_history: Sequence[Sequence[int]]) -> list[int]:
     """Total floors each car moved, summed over the run from its position log."""
     if not position_history:
         return []
@@ -74,9 +72,9 @@ def _distance_per_car(position_history: Sequence[Sequence[int]]) -> List[int]:
 
 
 def summarize(
-    passengers: List[Passenger],
+    passengers: list[Passenger],
     ticks_elapsed: int,
-    position_history: Optional[Sequence[Sequence[int]]] = None,
+    position_history: Sequence[Sequence[int]] | None = None,
 ) -> Summary:
     delivered = [p for p in passengers if p.delivered]
 

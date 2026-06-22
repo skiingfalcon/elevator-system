@@ -3,7 +3,7 @@ name = "elevator-sim"
 version = "0.1.0"
 description = "A discrete-time Destination Dispatch elevator system simulation."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.13"
 dependencies = []
 
 [project.optional-dependencies]

@@ -13,11 +13,8 @@ Run ``python scripts/generate_results.py`` first to refresh the CSV, then:
     python scripts/plot_comparison.py
 """
 
-from __future__ import annotations
-
 import csv
 from pathlib import Path
-from typing import Dict, List
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RESULTS_DIR = REPO_ROOT / "results"
@@ -36,7 +33,7 @@ SHORT = {
 }
 
 
-def load_rows() -> List[Dict[str, str]]:
+def load_rows() -> list[dict[str, str]]:
     if not CSV_PATH.exists():
         raise SystemExit(
             f"{CSV_PATH} not found — run scripts/generate_results.py first."
@@ -45,15 +42,15 @@ def load_rows() -> List[Dict[str, str]]:
         return list(csv.DictReader(fh))
 
 
-def _ordered_scenarios(rows: List[Dict[str, str]]) -> List[str]:
-    seen: List[str] = []
+def _ordered_scenarios(rows: list[dict[str, str]]) -> list[str]:
+    seen: list[str] = []
     for r in rows:
         if r["scenario"] not in seen:
             seen.append(r["scenario"])
     return seen
 
 
-def plot_avg_total(rows: List[Dict[str, str]], plt) -> Path:
+def plot_avg_total(rows: list[dict[str, str]], plt) -> Path:
     scenarios = _ordered_scenarios(rows)
     lookup = {(r["scenario"], r["scheduler"]): float(r["total_avg"]) for r in rows}
 
@@ -84,7 +81,7 @@ def plot_avg_total(rows: List[Dict[str, str]], plt) -> Path:
     return out
 
 
-def plot_wait_vs_tail(rows: List[Dict[str, str]], plt) -> Path:
+def plot_wait_vs_tail(rows: list[dict[str, str]], plt) -> Path:
     """Scatter: avg wait (fairness) vs p95 total (tail) — one marker per run."""
     markers = {"nearest_car": "o", "round_robin": "s", "zone_based": "^"}
     fig, ax = plt.subplots(figsize=(9, 6))

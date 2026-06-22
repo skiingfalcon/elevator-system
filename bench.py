@@ -11,11 +11,8 @@ cites. Because the workload is seeded, the numbers are reproducible:
 The default parameters match the table in README.md.
 """
 
-from __future__ import annotations
-
 import argparse
 import random
-from typing import List
 
 from elevator_sim.models import Request
 from elevator_sim.schedulers.base import available, create
@@ -25,10 +22,10 @@ from elevator_sim.stats import summarize
 
 def make_workload(
     n: int, floors: int, seed: int, arrival_gap: int = 3
-) -> List[Request]:
+) -> list[Request]:
     """A deterministic stream of ``n`` mixed-direction requests over time."""
     rng = random.Random(seed)
-    reqs: List[Request] = []
+    reqs: list[Request] = []
     t = 0
     for i in range(n):
         t += rng.randint(0, arrival_gap)

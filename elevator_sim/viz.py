@@ -4,10 +4,6 @@ Kept import-light: matplotlib is only imported when a plotting function is actua
 called, so the core simulation runs in a stdlib-only environment.
 """
 
-from __future__ import annotations
-
-from typing import List, Optional
-
 from elevator_sim.models import Passenger
 from elevator_sim.simulation import SimulationResult
 
@@ -23,12 +19,12 @@ def _require_matplotlib():
     except ImportError as exc:  # pragma: no cover - depends on environment
         raise RuntimeError(
             "matplotlib is required for plotting. Install it with "
-            "`pip install matplotlib` (or `pip install -r requirements.txt`)."
+            "`uv sync --extra plot` (or `pip install matplotlib`)."
         ) from exc
 
 
 def plot_time_distributions(
-    passengers: List[Passenger], out_path: str = "time_distributions.png"
+    passengers: list[Passenger], out_path: str = "time_distributions.png"
 ) -> str:
     """Histogram of wait and total times across delivered passengers."""
     plt = _require_matplotlib()
@@ -80,8 +76,8 @@ def plot_elevator_movement(
 
 
 def plot_all(
-    result: SimulationResult, prefix: Optional[str] = None
-) -> List[str]:
+    result: SimulationResult, prefix: str | None = None
+) -> list[str]:
     """Render both charts; returns the written file paths."""
     p = f"{prefix}_" if prefix else ""
     return [

@@ -10,22 +10,21 @@ The request format (from the spec) is::
 A header row is optional and auto-detected.
 """
 
-from __future__ import annotations
-
 import csv
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, List, TextIO, Union
+from typing import TextIO
 
 from elevator_sim.models import Request
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 
-def _looks_like_header(row: List[str]) -> bool:
+def _looks_like_header(row: list[str]) -> bool:
     return row[:1] == ["time"] or (len(row) >= 1 and not row[0].lstrip("-").isdigit())
 
 
-def parse_requests(source: Union[PathLike, Iterable[str]]) -> List[Request]:
+def parse_requests(source: PathLike | Iterable[str]) -> list[Request]:
     """Parse requests from a CSV file path or an iterable of lines.
 
     Returns requests sorted by time (stable), so the simulation can release them
@@ -37,7 +36,7 @@ def parse_requests(source: Union[PathLike, Iterable[str]]) -> List[Request]:
     else:
         rows = list(csv.reader(source))
 
-    requests: List[Request] = []
+    requests: list[Request] = []
     for i, row in enumerate(rows):
         if not row or all(not c.strip() for c in row):
             continue
@@ -68,7 +67,7 @@ class PositionLogWriter:
         header = ["tick"] + [f"elevator_{i}" for i in range(num_elevators)]
         self._writer.writerow(header)
 
-    def write(self, tick: int, floors: List[int]) -> None:
+    def write(self, tick: int, floors: list[int]) -> None:
         self._writer.writerow([tick, *floors])
 
     def close(self) -> None:

@@ -12,10 +12,6 @@ their origin, where cost combines:
   dropping until some car takes them.
 """
 
-from __future__ import annotations
-
-from typing import List, Optional
-
 from elevator_sim.elevator import Elevator
 from elevator_sim.models import Passenger
 from elevator_sim.schedulers.base import Scheduler, register
@@ -43,8 +39,8 @@ class NearestCarScheduler(Scheduler):
         return eta + congestion - aging_bonus
 
     def choose(
-        self, passenger: Passenger, elevators: List[Elevator], now: int
-    ) -> Optional[int]:
+        self, passenger: Passenger, elevators: list[Elevator], now: int
+    ) -> int | None:
         candidates = [e for e in elevators if e.can_accept(passenger)]
         if not candidates:
             return None

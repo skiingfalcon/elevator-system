@@ -5,11 +5,8 @@ a Destination Dispatch system). Once the simulation picks the passenger up and d
 them off, the derived ``wait_time`` / ``travel_time`` / ``total_time`` become available.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 
 class Direction(Enum):
@@ -80,10 +77,10 @@ class Passenger:
     source: int
     dest: int
     request_time: int
-    pickup_time: Optional[int] = None
-    dropoff_time: Optional[int] = None
+    pickup_time: int | None = None
+    dropoff_time: int | None = None
     # Bookkeeping for schedulers / dispatch.
-    assigned_elevator: Optional[int] = field(default=None)
+    assigned_elevator: int | None = field(default=None)
 
     @classmethod
     def from_request(cls, req: Request) -> "Passenger":
@@ -122,21 +119,21 @@ class Passenger:
         return PassengerState.WAITING
 
     @property
-    def wait_time(self) -> Optional[int]:
+    def wait_time(self) -> int | None:
         """Ticks between request and pickup."""
         if self.pickup_time is None:
             return None
         return self.pickup_time - self.request_time
 
     @property
-    def travel_time(self) -> Optional[int]:
+    def travel_time(self) -> int | None:
         """Ticks between pickup and dropoff."""
         if self.pickup_time is None or self.dropoff_time is None:
             return None
         return self.dropoff_time - self.pickup_time
 
     @property
-    def total_time(self) -> Optional[int]:
+    def total_time(self) -> int | None:
         """wait_time + travel_time (i.e. request -> dropoff)."""
         if self.dropoff_time is None:
             return None
