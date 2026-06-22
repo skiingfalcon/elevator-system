@@ -64,6 +64,15 @@ needs no third-party packages at all.
 uv run pytest
 ```
 
+### Reproduce the scheduler comparison
+
+```bash
+python scripts/generate_results.py   # writes results/ (CSV, JSON, Markdown tables)
+```
+
+See [Scheduler comparison](#scheduler-comparison-fairness-vs-efficiency) below for
+the findings, or [`results/`](results/) for the generated stats and charts.
+
 ---
 
 ## Model
@@ -148,6 +157,25 @@ Regenerate the table (or sweep different parameters) with:
 ```bash
 python bench.py                       # defaults match the table above
 python bench.py --passengers 500 --elevators 6 --seed 7
+```
+
+### No universal winner (broader sweep)
+
+A wider sweep across five traffic patterns confirms the trade-off is real — the
+best scheduler depends on the traffic shape, not on one being strictly superior:
+
+| Traffic pattern | Best scheduler | Why |
+|-----------------|----------------|-----|
+| Mixed (200) / tall building (300) | `nearest_car` | distance/direction awareness wins, and the edge grows with building height (~8% → ~20%) |
+| Up-peak burst / 15-row sample | `round_robin` | everyone clusters at the lobby going up, so "nearest" barely differentiates and the system is throughput-bound |
+| Down-peak | `zone_based` | contiguous zones naturally match "upper floors → lobby" flow |
+
+The full per-scenario stats (CSV, JSON, slide-ready Markdown tables, and charts)
+live in [`results/`](results/) and are reproducible with:
+
+```bash
+python scripts/generate_results.py                    # data -> results/*.{csv,json,md}
+uv run --extra plot python scripts/plot_comparison.py  # charts -> results/*.png
 ```
 
 ---
