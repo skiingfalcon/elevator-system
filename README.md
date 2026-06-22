@@ -197,11 +197,12 @@ uv run --extra plot python scripts/plot_comparison.py  # charts -> results/*.png
 
 ## Time spent
 
-Roughly **4–5 hours**: ~1h reading the spec and designing the module layout, ~2h
-on the core engine and schedulers, ~1h on the test suite, and ~1h tuning the
+Roughly **8 hours**: ~1h reading the spec and designing the module layout, ~2.5h
+on the core engine and schedulers, ~1.5h on the test suite, ~1h tuning the
 nearest-car cost function (the first version naively used current-floor distance
 and piled passengers onto a single committed car, producing pathological waits —
-switching to an ETA-along-the-SCAN-run estimate fixed it) plus the README.
+switching to an ETA-along-the-SCAN-run estimate fixed it), ~1h on the reproducible
+benchmark, multi-scenario comparison, and charts, and ~1h on the README and docs.
 
 ## Assumptions, simplifications, and trade-offs
 
@@ -225,10 +226,15 @@ switching to an ETA-along-the-SCAN-run estimate fixed it) plus the README.
 
 ## What I'd improve with more time
 
+- **Batch / joint assignment (Hungarian algorithm)** — the current scheduler is
+  greedy: it assigns each passenger to its individually-cheapest car, one at a time.
+  When several requests arrive together (the common case at peak), solving the whole
+  batch jointly as a min-cost assignment problem can beat the greedy local optimum.
+  This is the highest-value improvement — it's exactly the case where the comparison
+  above shows greedy `nearest_car` losing its edge (up-peak bursts), and grouping
+  riders by destination is the core of what makes real destination dispatch fast.
 - **Dynamic reassignment** — let the scheduler re-home a waiting passenger when a
   closer car becomes free, to cut the tail latency.
-- **Look-ahead / batching** within a tick — when several requests arrive together,
-  solve the assignment jointly (e.g. Hungarian algorithm) instead of greedily.
 - **Dwell time and acceleration** for a more realistic physical model.
 - **Expose zone boundaries on the CLI** (express elevators are now configurable
   via `--express`), plus per-elevator configuration files.
